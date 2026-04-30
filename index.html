@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Calentamiento">
+  <meta name="description" content="Guía de Calentamiento Dinámico y Activación sin equipo">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <title>Guía de Calentamiento</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #263348;
+      --accent: #f97316;
+      --accent2: #fb923c;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { background: var(--bg); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-bottom: calc(80px + var(--safe-bottom));
+    }
+    /* Header */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: calc(var(--safe-top) + 16px) 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .app-header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .app-header p { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    /* Tab nav */
+    .tab-nav {
+      display: flex;
+      gap: 6px;
+      padding: 12px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: calc(var(--safe-top) + 68px);
+      z-index: 99;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    /* Content */
+    .tab-content { display: none; padding: 20px 16px; }
+    .tab-content.active { display: block; }
+    /* Section */
+    .section {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    /* Exercise item */
+    .exercise-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .exercise-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .exercise-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .exercise-info { flex: 1; }
+    .exercise-name { font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+    .exercise-detail { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+    /* Series card */
+    .series-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .serie-card {
+      background: var(--surface2);
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+    }
+    .serie-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .serie-reps { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+    .serie-reps span { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); }
+    .serie-weight { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+    .serie-rest {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+    /* Tempo badge */
+    .tempo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(249,115,22,0.12);
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-top: 10px;
+    }
+    /* Tip card */
+    .tip-card {
+      background: rgba(249,115,22,0.08);
+      border: 1px solid rgba(249,115,22,0.2);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+    .tip-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+    .tip-card strong { color: var(--text); }
+    /* Bottom nav */
+    .bottom-safe {
+      height: calc(80px + var(--safe-bottom));
+    }
+    /* Install banner */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 16px);
+      left: 16px;
+      right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      z-index: 200;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    #install-banner.show { display: flex; }
+    .install-text { font-size: 0.85rem; color: var(--text); line-height: 1.5; }
+    .install-actions { display: flex; gap: 8px; }
+    .btn-install {
+      flex: 1;
+      padding: 10px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-dismiss {
+      padding: 10px 16px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>🔥 Calentamiento Dinámico</h1>
+  <p>Activa tu sistema nervioso antes de entrenar</p>
+</header>
+
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" onclick="showTab('d14')" role="tab">📅 Días 1 &amp; 4</button>
+  <button class="tab-btn" onclick="showTab('d25')" role="tab">📅 Días 2 &amp; 5</button>
+  <button class="tab-btn" onclick="showTab('d36')" role="tab">📅 Días 3 &amp; 6</button>
+  <button class="tab-btn" onclick="showTab('info')" role="tab">ℹ️ Parámetros</button>
+</nav>
+
+<!-- DÍA 1 Y 4: EMPUJE -->
+<div id="tab-d14" class="tab-content active">
+  <div class="section">
+    <div class="section-title">💪 Empuje — Pecho, Hombros &amp; Tríceps</div>
+
+    <div class="exercise-item">
+      <div class="exercise-icon">🔄</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Movilidad Articular</div>
+        <div class="exercise-detail">Sin descanso entre ejercicios</div>
+      </div>
+    </div>
+
+    <div class="exercise-item">
+      <div class="exercise-icon">🫱</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Círculos de cuello y muñecas</div>
+        <div class="exercise-detail">30 seg cada uno · Movimientos lentos y controlados</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🙌</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Balanceos de brazos horizontales</div>
+        <div class="exercise-detail">15 reps · Cruza los brazos frente al pecho rítmicamente</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🌀</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Círculos de hombros (Molinos)</div>
+        <div class="exercise-detail">10 hacia adelante / 10 hacia atrás · Brazos estirados, círculos grandes</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">↔️</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Rotaciones Externas "en L"</div>
+        <div class="exercise-detail">15 reps · Codos pegados al torso a 90° · Abre las manos hacia afuera al máximo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🛡️ Activación Escapular</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">⬛</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Plancha</div>
+        <div class="exercise-detail">Descanso: 30s después</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🏋️ Series de Aproximación — Press de Banca</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">⚙️</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Configuración de máquina</div>
+        <div class="exercise-detail">Asiento a una altura donde los agarres queden alineados con la mitad del pecho</div>
+      </div>
+    </div>
+    <div class="series-grid">
+      <div class="serie-card">
+        <div class="serie-label">Serie 1</div>
+        <div class="serie-reps">15 <span>reps</span></div>
+        <div class="serie-weight">30% de tu peso real</div>
+        <div class="serie-rest">⏱ Descanso 45s</div>
+        <div class="tempo-badge">⏩ 3:1:1:0</div>
+      </div>
+      <div class="serie-card">
+        <div class="serie-label">Serie 2</div>
+        <div class="serie-reps">8 <span>reps</span></div>
+        <div class="serie-weight">60% de tu peso real</div>
+        <div class="serie-rest">⏱ Descanso 60s</div>
+        <div class="tempo-badge">⏩ 3:1:1:0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DÍA 2 Y 5: TIRÓN -->
+<div id="tab-d25" class="tab-content">
+  <div class="section">
+    <div class="section-title">🏹 Tirón — Espalda, Hombros post. &amp; Bíceps</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🔄</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Movilidad Articular</div>
+        <div class="exercise-detail">Sin descanso entre ejercicios</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🌊</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Rotaciones de Tronco con Brazos Relajados</div>
+        <div class="exercise-detail">20 giros totales · Deja que los brazos golpeen suavemente por inercia</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🌀</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Círculos Escapulares</div>
+        <div class="exercise-detail">12 círculos lentos · Sube hombros, llévalos atrás juntando escápulas, baja y adelante</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🫱</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Círculos de muñecas</div>
+        <div class="exercise-detail">30 seg · Prepara el agarre</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🛡️ Activación Escapular</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🦸</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Superman alterno + Puente de glúteo</div>
+        <div class="exercise-detail">2 series × 15 reps · Fija la pelvis para prevenir balanceo lumbar</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">⏱</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Descanso entre series</div>
+        <div class="exercise-detail">45 segundos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🏋️ Series de Aproximación — Dominadas / Jalón</div>
+    <div class="series-grid">
+      <div class="serie-card">
+        <div class="serie-label">Serie 1</div>
+        <div class="serie-reps">15 <span>reps</span></div>
+        <div class="serie-weight">30% de tu peso real</div>
+        <div class="serie-rest">⏱ Descanso 45s</div>
+        <div class="tempo-badge">⏩ 3:1:1:0</div>
+      </div>
+      <div class="serie-card">
+        <div class="serie-label">Serie 2</div>
+        <div class="serie-reps">8 <span>reps</span></div>
+        <div class="serie-weight">60% de tu peso real</div>
+        <div class="serie-rest">⏱ Descanso 60s</div>
+        <div class="tempo-badge">⏩ 3:1:1:0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DÍA 3 Y 6: PIERNA -->
+<div id="tab-d36" class="tab-content">
+  <div class="section">
+    <div class="section-title">🦵 Pierna &amp; Abdominales</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🚴</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Elevación de Temperatura</div>
+        <div class="exercise-detail">Bicicleta estática o Elíptica · 5–7 minutos · Ritmo suave que permita hablar</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🔄 Movilidad Articular</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🦵</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Balanceos de Pierna (apoyado en pared)</div>
+        <div class="exercise-detail">15 frontales + 15 laterales por pierna</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🥷</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Sentadilla lateral dinámica (Cossack)</div>
+        <div class="exercise-detail">10 reps totales · Baja a un lado con la otra pierna estirada y talón en suelo</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">▬</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Plancha lateral</div>
+        <div class="exercise-detail">Sin descanso</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🏋️ Series de Aproximación — Sentadilla Hack</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">⚙️</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Configuración</div>
+        <div class="exercise-detail">Pies en la parte media-alta de la plataforma a ancho de hombros</div>
+      </div>
+    </div>
+    <div class="series-grid">
+      <div class="serie-card">
+        <div class="serie-label">Serie 1</div>
+        <div class="serie-reps">15 <span>reps</span></div>
+        <div class="serie-weight">Máquina vacía</div>
+        <div class="serie-rest">⏱ Descanso 60s</div>
+        <div class="tempo-badge">⏩ 3:1:1:0</div>
+      </div>
+      <div class="serie-card">
+        <div class="serie-label">Serie 2</div>
+        <div class="serie-reps">8 <span>reps</span></div>
+        <div class="serie-weight">50% de tu peso real</div>
+        <div class="serie-rest">⏱ Descanso 90s</div>
+        <div class="tempo-badge">⏩ 3:1:1:0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INFO -->
+<div id="tab-info" class="tab-content">
+  <div class="section">
+    <div class="section-title">🏁 Parámetros Clave</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">🎯</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Objetivo</div>
+        <div class="exercise-detail">Preparar el tejido, no fatigarlo. Todas las series deben sentirse fáciles (RIR 10)</div>
+      </div>
+    </div>
+    <div class="exercise-item">
+      <div class="exercise-icon">➡️</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Transición al entrenamiento</div>
+        <div class="exercise-detail">Al terminar la 2ª serie de aproximación, descansa 90–120s y comienza tu primera serie efectiva</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">⏩ Nota sobre Tempo (Velocidad)</div>
+    <div class="exercise-item">
+      <div class="exercise-icon">📖</div>
+      <div class="exercise-info">
+        <div class="exercise-name">Formato: A:B:C:D</div>
+        <div class="exercise-detail">Ej. 3:1:1:0 significa:</div>
+      </div>
+    </div>
+    <div class="series-grid">
+      <div class="serie-card"><div class="serie-label">A — Bajada</div><div class="serie-reps">3s</div><div class="serie-weight">Excéntrica lenta</div></div>
+      <div class="serie-card"><div class="serie-label">B — Pausa</div><div class="serie-reps">1s</div><div class="serie-weight">Posición final</div></div>
+      <div class="serie-card"><div class="serie-label">C — Subida</div><div class="serie-reps">1s</div><div class="serie-weight">Concéntrica explosiva</div></div>
+      <div class="serie-card"><div class="serie-label">D — Arriba</div><div class="serie-reps">0s</div><div class="serie-weight">Sin pausa arriba</div></div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <p><strong>💡 Consejo:</strong> Instala esta app en tu iPhone — toca el botón de compartir en Safari y selecciona <em>"Añadir a la pantalla de inicio"</em> para acceder sin conexión.</p>
+  </div>
+</div>
+
+<!-- Install prompt (Android/Chrome) -->
+<div id="install-banner">
+  <div class="install-text">📲 <strong>Instalar app</strong> — Accede sin conexión directamente desde tu pantalla de inicio</div>
+  <div class="install-actions">
+    <button class="btn-install" id="btn-install">Instalar</button>
+    <button class="btn-dismiss" onclick="dismissBanner()">Ahora no</button>
+  </div>
+</div>
+
+<script>
+  // Tab navigation
+  function showTab(id) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.currentTarget.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(console.warn);
+    });
+  }
+
+  // PWA Install prompt (Android/Chrome)
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!localStorage.getItem('install-dismissed')) {
+      document.getElementById('install-banner').classList.add('show');
+    }
+  });
+
+  document.getElementById('btn-install').addEventListener('click', () => {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      dismissBanner();
+    });
+  });
+
+  function dismissBanner() {
+    document.getElementById('install-banner').classList.remove('show');
+    localStorage.setItem('install-dismissed', '1');
+  }
+</script>
+</body>
+</html>
